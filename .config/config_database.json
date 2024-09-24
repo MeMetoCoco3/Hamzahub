@@ -1,0 +1,147 @@
+
+{
+    "CONEXION" : {
+        "host":"localhost",
+        "user":"Vidal",
+        "password":"Moco11!!",
+        "port":3306,
+        "database":"Hamzahub"
+    },
+
+    "WAREHOUSE_DIMENSIONS": {
+        "801": {
+            "Rows": 20,
+            "Levels": {
+                "A": {
+                    "Height": 20,
+                    "Weight": 100000
+                },
+                "B": {
+                    "Height": 160,
+                    "Weight": 1200
+                },
+                "C": {
+                    "Height": 200,
+                    "Weight": 800
+                }
+            },
+            "ADR": "Y"
+        },
+        "802": {
+            "Rows": 10,
+            "Levels": {
+                "A": {
+                    "Height": 24130,
+                    "Weight": 300
+                },
+                "B": {
+                    "Height": 1640,
+                    "Weight": 1200
+                },
+                "C": {
+                    "Height": 2050,
+                    "Weight": 8060
+                },
+                "D": {
+                    "Height": 160,
+                    "Weight": 600
+                }
+            },
+            "ADR": "N"
+        },
+        "803": {
+            "Rows": 10,
+            "Levels": {
+                "A": {
+                    "Height": 20,
+                    "Weight": 6969
+                },
+                "B": {
+                    "Height": 420,
+                    "Weight": 12100
+                }
+            },
+            "ADR": "Y"
+        }
+    }, 
+
+    "PRODUCTS": [
+        [11, "Paint GREEN", 128, "KD", 6.99, "Y"],
+        [12, "Paint YELLOW", 128, "KD", 6.99, "Y"],
+        [13, "Paint RED", 128, "KD", 6.99, "Y"],
+        [14, "Paint WHITE", 128, "KD", 7.99, "Y"],
+        [21, "Wheel 38 KG", 20, "JW", 120.99, "N"],
+        [22, "Wheel 55 KG", 10, "JW", 149.99, "N"],
+        [23, "Wheel 100 KG", 6, "JW", 199.99, "N"],
+        [24, "Wheel 250 KG", 4, "JW", 249.99, "N"],
+        [31, "Revolver 21mm", 50, "RC", 59.99, "N"],
+        [32, "BB gun", 100, "RC", 19.99, "N"],
+        [33, "Bullet 21mm", 5000, "RC", 0.11, "Y"],
+        [34, "BB bullets", 5000, "RC", 0.05, "N"],
+        [41, "SCP 301", 1, "SCP", 871.99, "Y"],
+        [42, "SCP 5879", 1, "SCP", 15467.50, "Y"],
+        [43, "SCP 73", 1, "SCP", 3999.99, "Y"],
+        [44, "SCP 005", 1, "SCP", 64.69, "Y"]
+    ],
+
+    "CLIENTS": [
+        ["Katusha Dabaya", "KD"],
+        ["John Weights", "JW"],
+        ["Ritual Castor", "RC"],
+        ["Pie", "AJP"],
+        ["HamzaHub","HB"],
+        ["Mainfrei", "MF"],
+        ["js2onja", "acasddc"],
+        ["Spongibo", "SCP"]
+    ],
+
+    "INFO": {
+        "name": "HamzaHub",
+        
+        "font_text":"ArialBlack", 
+        "font_label":"LucidaConsole", 
+        "font_button":"MicrosoftSansSerif", 
+        "font_option_label":"Consolas", 
+
+        "c_Log_F1":"#291F3E", 
+        "c_Log_F2":"#4C2F4C",
+        "c_Log_Letters" : "#FFFFFF",
+
+        "c_Main_Labels": "#E9EAEE",
+        "c_Main_LFrame":"#567280", 
+        "c_Main_Text": "#111111",
+        "c_Main_Bg": "#031C21",
+
+        "c_SW_Bg": "#031C21",
+        "c_SW_Textbox1": "#96ACB7",
+        "c_SW_Textbox2": "#D4E4BC",
+        "c_SW_Labels": "#D3D3D3",
+        "c_SW_Letters":"#222823",
+        "c_SW_Label_Args":"#D3D3D3",
+        "c_SW_Table_Header":"#7F598E", 
+        "c_SW_Font":"#222823", 
+        "c_SW_Frame_1":"#324258",         
+        "c_SW_Frame_2":"#7F598E", 
+        
+        "c_SW_Labels_Options": "#E9EAEE",
+        "c_SW_Letters_Options": "#111111",
+
+        "c_Register_Frame" : "#FFE511",
+        
+        "f1_radius":6, 
+        "f2_radius":6
+    },
+    "RESOURCES":{
+        "windowIcon":"resources/w4.ico",
+        "orderIcon":"resources/order.png",
+        "moveIcon":"resources/move.png",
+        "infoIcon":"resources/info.png",
+        "trailerIcon":"resources/trailer.png",
+        "resetIcon":"resources/reset.jpg",
+
+        "logo":"resources/DGnamelog2.jpg",
+        "dropdownMenu":"resources/dropdown_menuWhite.png",
+        "background": "resources/monsDumb.jpeg",
+        "company_icon": "resources/DGicon2.png"
+        }
+}

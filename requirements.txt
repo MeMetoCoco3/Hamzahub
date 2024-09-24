@@ -1,0 +1,7 @@
+python = "^3.11"
+tksheet = "^7.2.13"
+mysql-connector-python = "^8.1.0"
+pillow = "^10.4.0"
+pandas = "^2.1.0"
+customtkinter = "^5.2.2"
+bcrypt = "^4.2.0"
