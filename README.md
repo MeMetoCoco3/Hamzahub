@@ -1,8 +1,10 @@
 # HamzaHub
 ## A complete and automatized management system for dangerous goods on a indexed warehouse written in Python and SQL.
-![Schermafbeelding 2024-10-01 185211](https://github.com/user-attachments/assets/14bfa90c-7b17-4a9d-8a5b-72bf4b175eb0)
-![Schermafbeelding 2024-10-01 184956](https://github.com/user-attachments/assets/94c41385-5545-4cf4-affd-2d0344bce5af)
 
+![Schermafbeelding 2024-10-01 184956](https://github.com/user-attachments/assets/94c41385-5545-4cf4-affd-2d0344bce5af)
+| ![Schermafbeelding 2024-10-01 185211](https://github.com/user-attachments/assets/14bfa90c-7b17-4a9d-8a5b-72bf4b175eb0) | 
+|:--:| 
+| *Login and MySQL database* |
 
 ### What is it?
 HamzaHub is a working management system inspired by years of having to deal with dangerous goods in the logistics field. My main objective was make it fully functional, easy to use and easily customizable so anybody could start to use it on their workspace. The main features that HamzaHub has are:
