@@ -18,7 +18,7 @@ I found that some of the work that we use to do at my warehouse could be automat
 ### Usage
 1. We will clone the repo: 
 ```shell
-    git clone hamzahub [repository link](https://github.com/MeMetoCoco3/Hamzahub.git)
+    git clone hamzahub https://github.com/MeMetoCoco3/Hamzahub.git
 ```
 2. Set the parameters as we want on *.config/config_database.json*, you will requiere a connection on MySQL workbench.
 3. Run *warehouse_creation.py* with python command:
