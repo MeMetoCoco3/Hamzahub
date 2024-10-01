@@ -1,11 +1,11 @@
 
 {
     "CONEXION" : {
-        "host":"localhost",
-        "user":"Vidal",
-        "password":"Moco11!!",
-        "port":3306,
-        "database":"Hamzahub"
+        "host":"",
+        "user":"",
+        "password":"",
+        "port":8000,
+        "database":""
     },
 
     "WAREHOUSE_DIMENSIONS": {
@@ -66,33 +66,11 @@
     }, 
 
     "PRODUCTS": [
-        [11, "Paint GREEN", 128, "KD", 6.99, "Y"],
-        [12, "Paint YELLOW", 128, "KD", 6.99, "Y"],
-        [13, "Paint RED", 128, "KD", 6.99, "Y"],
-        [14, "Paint WHITE", 128, "KD", 7.99, "Y"],
-        [21, "Wheel 38 KG", 20, "JW", 120.99, "N"],
-        [22, "Wheel 55 KG", 10, "JW", 149.99, "N"],
-        [23, "Wheel 100 KG", 6, "JW", 199.99, "N"],
-        [24, "Wheel 250 KG", 4, "JW", 249.99, "N"],
-        [31, "Revolver 21mm", 50, "RC", 59.99, "N"],
-        [32, "BB gun", 100, "RC", 19.99, "N"],
-        [33, "Bullet 21mm", 5000, "RC", 0.11, "Y"],
-        [34, "BB bullets", 5000, "RC", 0.05, "N"],
-        [41, "SCP 301", 1, "SCP", 871.99, "Y"],
-        [42, "SCP 5879", 1, "SCP", 15467.50, "Y"],
-        [43, "SCP 73", 1, "SCP", 3999.99, "Y"],
-        [44, "SCP 005", 1, "SCP", 64.69, "Y"]
+        [11, "Paint GREEN", 128, "KD", 6.99, "Y"]
     ],
 
     "CLIENTS": [
-        ["Katusha Dabaya", "KD"],
-        ["John Weights", "JW"],
-        ["Ritual Castor", "RC"],
-        ["Pie", "AJP"],
-        ["HamzaHub","HB"],
-        ["Mainfrei", "MF"],
-        ["js2onja", "acasddc"],
-        ["Spongibo", "SCP"]
+        ["Katusha Dabaya", "KD"]
     ],
 
     "INFO": {

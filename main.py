@@ -250,14 +250,6 @@ class MyGUI(Tk):
         config_data = json.load(f)
     conexion = config_data["CONEXION"]
 
-    create_connection(
-        conexion["host"],
-        conexion["user"],
-        conexion["password"],
-        conexion["port"],
-        conexion["database"],
-    )
-    conexion = config_data["CONEXION"]
     info = config_data["INFO"]
     name = info["name"]
 
@@ -320,6 +312,8 @@ class MyGUI(Tk):
         self.max_num_windows = 3
         self.mycursor = self.mydb.cursor()
         self.config(background=MyGUI.c_Main_Bg)
+        self.attributes('-fullscreen',True)
+        self.attributes('-topmost', 0)
         self.focus_force()
         self.entry_point()
 
@@ -830,6 +824,7 @@ class MySW(Toplevel):
                 raise ValueError
 
         self.info_options_var = StringVar(self)
+        self.attributes('-topmost', 1)
         self.focus_force()
         self.create_dropdown_menu()
         self.grab_release()
@@ -1259,7 +1254,7 @@ class MySW(Toplevel):
                     text = Text(
                         frame,
                         height=1,
-                        font=(MyGUI.f_text, 8),
+                        font=(MyGUI.f_text, 10),
                         width=self.winfo_width() - 300,
                     )
                     text_cells.append(text)
@@ -1276,7 +1271,7 @@ class MySW(Toplevel):
                         relief="solid",
                         foreground=MyGUI.c_SW_Font,
                     ).grid(row=row, column=0, padx=5, pady=10, sticky=EW)
-                    text = Text(self.frame_1, height=1, font=(MyGUI.f_text, 8))
+                    text = Text(self.frame_1, height=1, font=(MyGUI.f_text, 10))
                     row += 1
                     text_cells.append(text)
                     text.grid(row=row, column=0, padx=5, pady=5, sticky=EW)
@@ -1293,7 +1288,7 @@ class MySW(Toplevel):
                         relief="solid",
                         foreground=MyGUI.c_SW_Font,
                     ).grid(row=row, column=1, padx=5, pady=10, sticky=EW)
-                    text = Text(self.frame_1, height=1, font=(MyGUI.f_text, 8))
+                    text = Text(self.frame_1, height=1, font=(MyGUI.f_text, 10))
                     row += 1
                     text_cells.append(text)
                     text.grid(row=row, column=1, padx=5, pady=5, sticky=EW)
@@ -2648,788 +2643,6 @@ class MySW(Toplevel):
             ).show()
 
 
-# Warehouse Creation
-def mfwh_db(mydb, mycursor, providers, products, level_range):
-    clients = ""
-    for i in providers:
-        clients += f"'{i[1]}', "
-    levels = ""
-    for i in level_range:
-        levels += f"'{i}',"
-    # Proveedores e info
-    tables = [
-        f"""CREATE TABLE Providers ( 
-                company_code VARCHAR(10) PRIMARY KEY UNIQUE,
-                name VARCHAR(30))""",
-        f"""CREATE TABLE Contact_Providers(
-                company_code VARCHAR(10),
-                telefono VARCHAR(15), 
-                email VARCHAR(75), 
-                CONSTRAINT FK_contactP FOREIGN KEY(company_code) references Providers(company_code))""",
-        """CREATE TABLE Customers (
-                id INT AUTO_INCREMENT PRIMARY KEY, 
-                country VARCHAR(30), 
-                postal_code VARCHAR(12))""",
-        """CREATE TABLE Contact_Customers (
-                contact_id INT, 
-                telefono VARCHAR(15), 
-                email VARCHAR(75), 
-                CONSTRAINT FK_contactC FOREIGN KEY(contact_id) references Customers(id))""",
-        f"""CREATE TABLE Products (
-                sku INT PRIMARY KEY, 
-                name VARCHAR(40), 
-                num_boxes_per_pallet INT, 
-                company_code VARCHAR(10),
-                benefit FLOAT, 
-                ADR ENUM('Y','N'), 
-                CONSTRAINT FK_prod_cc_prov FOREIGN KEY(company_code) references Providers(company_code))""",
-        """CREATE TABLE Lps (
-                lp VARCHAR(12) PRIMARY KEY, 
-                sku INT,
-                num_boxes INT DEFAULT 0,
-                num_allocated_boxes INT DEFAULT 0,
-                on_loc ENUM('Y','N'), 
-                employee VARCHAR(20),
-                CONSTRAINT FK_lps_sku_prod FOREIGN KEY(sku) references Products(sku))""",
-        """CREATE TABLE Sales (
-                id INT AUTO_INCREMENT PRIMARY KEY, 
-                date DATE, 
-                sku INT,
-                num_boxes INT, 
-                CONSTRAINT FK_sales_sku_prod FOREIGN KEY(sku) references Products(sku))""",
-        """CREATE TABLE Locations ( 
-                position VARCHAR(8) PRIMARY KEY, 
-                level CHAR,
-                lp VARCHAR(12),
-                max_weight INT,
-                max_height INT,
-                ADR ENUM('Y','N'),
-                CONSTRAINT FK_loc_lp_lps FOREIGN KEY(lp) references Lps(lp) 
-                ON DELETE SET NULL)""",
-        f"""CREATE TABLE Moves (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                lp VARCHAR(12) UNIQUE, 
-                future_position VARCHAR(8), 
-                employee VARCHAR(20),
-                company_code VARCHAR(10),
-                CONSTRAINT FK_mv_lp_lps FOREIGN KEY(lp) references Lps(lp),
-                CONSTRAINT FK_mv_cc_prov FOREIGN KEY(company_code) references Providers(company_code),
-                CONSTRAINT FK_mv_fpos_loc FOREIGN KEY(future_position) references Locations(position))""",
-        """CREATE TABLE Products_bufe (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                wave_number VARCHAR(16),
-                order_number VARCHAR(12),
-                sku INT,
-                num_boxes INT,
-                fecha DATE,
-                added VARCHAR(1),
-                CONSTRAINT FK_pb_sku_prod FOREIGN KEY(sku) references Products(sku))""",
-        f"""CREATE TABLE Back_orders (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                sku INT,  
-                num_boxes INT, 
-                backorder_number VARCHAR(12), 
-                fecha DATE,
-                CONSTRAINT FK_bord_sku_prod FOREIGN KEY(sku) references Products(sku))""",
-        f"""CREATE TABLE Pick_list (
-                id INT AUTO_INCREMENT PRIMARY KEY, 
-                company_code VARCHAR(10), 
-                order_number VARCHAR(12), 
-                sku INT, 
-                num_boxes INT, 
-                state ENUM('NR','WM','NP', 'P') DEFAULT 'NR', 
-                loc VARCHAR(8),
-                lp VARCHAR(12),
-                employee VARCHAR(20),
-                CONSTRAINT FK_pickl_cc_prov FOREIGN KEY(company_code) references Providers(company_code),
-                CONSTRAINT FK_pickl_sku_prod FOREIGN KEY(sku) references Products(sku),
-                CONSTRAINT FK_pickl_loc_locs FOREIGN KEY(loc) references Locations(position))""",
-        f"""CREATE TABLE Trailers(
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                trailer_number VARCHAR(16),
-                sku INT,
-                num_boxes INT,
-                company_code VARCHAR(10),
-                fecha DATE,
-                CONSTRAINT FK_tr_sku_prod FOREIGN KEY(sku) references Products(sku))""",
-        """CREATE VIEW Lp_location_data AS 
-                SELECT Lps.lp AS lp, 
-                    Lps.sku AS sku, 
-                    Lps.num_boxes AS num_boxes, 
-                    Lps.num_allocated_boxes AS num_allocated_boxes,
-                    Locations.position AS position, 
-                    Locations.level AS level
-                FROM Lps RIGHT JOIN Locations 
-                ON Lps.lp = Locations.lp;""",
-        """CREATE VIEW Sales_info AS 
-                SELECT Sales.id AS Order_id, 
-                    Sales.date AS Date, 
-                    Sales.sku AS SKU, 
-                    Sales.num_boxes AS Num_boxes,
-                    ROUND(Products.benefit, 2) AS Single_unit_benefit,
-                    ROUND(Sales.num_boxes * Products.benefit, 2) as Total_benefit,
-                    Products.company_code 
-                FROM Sales LEFT JOIN Products 
-                ON Sales.sku = Products.sku;""",
-    ]
-
-    for table in tables:
-        mycursor.execute(table)
-
-    # Triggers
-    mycursor.execute(
-        """CREATE TRIGGER tr_write_lp_on_loc
-                AFTER INSERT ON Lps 
-                FOR EACH ROW 
-                BEGIN 
-                    DECLARE check_on_location INT;
-                    DECLARE random_position VARCHAR(8);
-                    
-                    SELECT COUNT(position) INTO check_on_location
-                    FROM Locations WHERE Locations.lp = NEW.lp LIMIT 1;
-
-                    IF (NEW.on_loc = 'Y' AND check_on_location != 1) THEN
-                        SELECT Locations.position INTO random_position FROM Locations
-                        WHERE Locations.lp IS NULL
-                        ORDER BY RAND()
-                        LIMIT 1; 
-
-                        UPDATE Locations SET Locations.lp = NEW.lp
-                        WHERE Locations.position = random_position;
-                    END IF;
-                END;"""
-    )
-
-    mycursor.execute(
-        """CREATE TRIGGER tr_write_lp
-                BEFORE INSERT ON Lps 
-                FOR EACH ROW 
-                BEGIN 
-                    DECLARE last_id INT;
-                    SELECT COUNT(lp) INTO last_id FROM Lps;
-                    IF (NEW.lp IS NULL) THEN 
-                        SET NEW.lp = CONCAT(last_id, '-', NEW.sku);
-                    END IF;
-                END;"""
-    )
-    """
-    mycursor.execute(
-        f CREATE TRIGGER tr_check_moves
-            BEFORE UPDATE ON Lps
-            FOR EACH ROW 
-            BEGIN 
-                DECLARE level_var ENUM({levels[:-1]});
-                SELECT level INTO level_var 
-                    FROM Locations 
-                    WHERE Locations.Lp = NEW.lp;
-
-                IF (level_var != '{level_range[0]}' AND NEW.num_allocated_boxes > 0) THEN
-                    CALL pr_create_move(NEW.lp);
-                END IF;
-            END;
-    )
-    """
-    mycursor.execute(
-        """CREATE TRIGGER tr_assign_cc 
-            BEFORE INSERT ON Pick_list
-            FOR EACH ROW
-            BEGIN
-                DECLARE new_company_code VARCHAR(10);
-                SELECT company_code INTO new_company_code
-                FROM Products 
-                WHERE SKU = NEW.sku;
-                SET NEW.company_code = new_company_code;
-            END;"""
-    )
-
-    mycursor.execute(
-        """CREATE TRIGGER tr_assign_cc_moves
-            BEFORE INSERT ON Moves
-            FOR EACH ROW
-            BEGIN
-                DECLARE new_company_code VARCHAR(10);
-                SELECT company_code INTO new_company_code
-                FROM Products RIGHT JOIN Lps
-                ON Products.Sku = Lps.sku
-                WHERE Lps.lp = NEW.lp;
-                SET NEW.company_code = new_company_code;
-            END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_complete_move(
-                IN new_position VARCHAR(8),
-                IN lp_to_move VARCHAR(12))
-                BEGIN    
-                    CALL pr_check_lp_exists(lp_to_move);
-                    CALL pr_check_empty(new_position);
-                    CALL pr_check_allocated_boxes(lp_to_move, @allocated_boxes);
-                    IF (@allocated_boxes > 0) THEN
-                        SIGNAL SQLSTATE '47000' SET MESSAGE_TEXT = 'NOT POSSIBLE MOVE ALLOCATED PRODUCTS';
-                    END IF;
-
-                    UPDATE Locations SET Locations.lp = NULL WHERE Locations.lp = lp_to_move;
-                    UPDATE Locations SET Locations.lp = lp_to_move WHERE Locations.position = new_position;
-                    UPDATE Lps SET Lps.on_loc = 'Y' WHERE Lps.lp = lp_to_move;
-                END;"""
-    )
-
-    mycursor.execute(
-        f"""CREATE PROCEDURE IF NOT EXISTS pr_picking_move(
-                IN new_position VARCHAR(8),
-                IN lp_to_move VARCHAR(12))
-                BEGIN    
-                    DECLARE level_var CHAR;
-                    DECLARE old_loc VARCHAR(8);
-                    SELECT level INTO level_var FROM Locations WHERE position = new_position;  
-                    SELECT position INTO old_loc FROM Locations WHERE lp = lp_to_move;
-                    CALL pr_check_empty(new_position);
-                    
-                    IF (level_var != '{level_range[0]}') THEN    
-                        SIGNAL SQLSTATE '47000' SET MESSAGE_TEXT = 'NOT "A" LEVEL LOCATION';
-                    END IF;
-
-                    UPDATE Locations SET Locations.lp = NULL WHERE Locations.lp = lp_to_move;
-                    UPDATE Locations SET Locations.lp = lp_to_move WHERE Locations.position = new_position;
-                    DELETE FROM Moves WHERE lp = lp_to_move;
-                END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_partial_move(
-                IN old_lp VARCHAR(12),
-                IN new_lp VARCHAR(12),
-                IN num_boxes_to_move INT)
-                BEGIN    
-                    DECLARE not_alloc_boxes INT;
-                    DECLARE pm_sku INT;
-                    DECLARE boxes_lp INT;
-                    SELECT num_boxes INTO not_alloc_boxes FROM Lps WHERE Lps.lp = old_lp;
-                    SELECT sku INTO pm_sku FROM Lps WHERE Lps.lp = old_lp;
-
-                    CALL pr_check_lp_exists(old_lp);
-                    IF (num_boxes_to_move > not_alloc_boxes) THEN
-                        SIGNAL SQLSTATE '49000' SET MESSAGE_TEXT = 'NOT ENOUGH MOVABLE BOXES';
-                    END IF;
-
-                    INSERT INTO Lps (lp, sku, num_boxes) 
-                    VALUES (new_lp, pm_sku, num_boxes_to_move);
-                    UPDATE Lps SET Lps.num_boxes = Lps.num_boxes - num_boxes_to_move WHERE Lps.lp = old_lp;
-
-                    CALL pr_delete_empty_lp();
-                END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_check_in(
-                IN trailer_number VARCHAR(16),
-                IN var_sku INT,
-                IN new_lp VARCHAR(12),
-                IN num_boxes_to_move INT)
-                BEGIN    
-                    DECLARE total_boxes INT;
-
-                    SELECT num_boxes INTO total_boxes FROM Trailers 
-                        WHERE Trailers.trailer_number = trailer_number AND Trailers.sku = var_sku;
-
-                    CALL pr_check_lp_not_exists(new_lp);
-                    
-                    IF (total_boxes IS NULL) THEN
-                        SIGNAL SQLSTATE '85000' SET MESSAGE_TEXT = 'TRAILER NOT FOUND';
-                    END IF;
-
-                    IF (num_boxes_to_move > total_boxes) THEN
-                        SIGNAL SQLSTATE '85000' SET MESSAGE_TEXT = 'NOT ENOUGH BOXES';
-                    END IF;
-
-                    UPDATE Trailers SET Trailers.num_boxes = total_boxes - num_boxes_to_move 
-                        WHERE Trailers.trailer_number = trailer_number AND Trailers.sku = var_sku;
-                        
-                    IF (num_boxes_to_move = total_boxes) THEN
-                        DELETE FROM Trailers WHERE Trailers.num_boxes = 0;
-                    END IF;
-
-
-                    INSERT INTO Lps (lp, sku, num_boxes) 
-                    VALUES (new_lp, var_sku, num_boxes_to_move);
-
-
-                END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_check_allocated_boxes(
-                    IN lp VARCHAR(12),
-                    OUT return_value INT)
-                        BEGIN    
-                            DECLARE allocated_boxes INT;
-                            SELECT num_allocated_boxes INTO allocated_boxes FROM Lps WHERE Lps.lp = lp;
-                            SET return_value = allocated_boxes;
-                            SELECT return_value;
-                        END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_delete_empty_lp()
-            BEGIN
-                DELETE FROM Lps WHERE num_boxes = 0 AND num_allocated_boxes = 0;
-            END; """
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_delete_trailer(
-                    IN trailer VARCHAR(16)
-                    )
-                        BEGIN    
-                            DELETE FROM Trailers WHERE Trailers.trailer_number = trailer;
-                        END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_delete_order(
-                    IN order_number VARCHAR(12)
-                    )
-                        BEGIN    
-                            DELETE FROM Products_bufe WHERE Products_bufe.order_number= order_number;
-                            DELETE FROM Pick_list WHERE Pick_list.order_number= order_number;
-                        END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_check_empty(
-                IN check_position VARCHAR(8))
-                    BEGIN   
-                        DECLARE check_empty VARCHAR(12);
-                        SELECT lp INTO check_empty 
-                        FROM lp_location_data
-                        WHERE position = check_position;
-                                
-                        IF (check_empty IS NOT NULL) THEN
-                            SIGNAL SQLSTATE '46000' SET MESSAGE_TEXT = 'LOCATION NOT EMPTY';
-                        END IF;
-                    END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_check_order_employee(
-                IN check_order VARCHAR(8),
-                IN employee VARCHAR(20))
-                    BEGIN   
-                        DECLARE check_empty VARCHAR(20);
-                        SELECT Pick_list.employee INTO check_empty 
-                        FROM Pick_list
-                        WHERE Pick_list.order_number = check_order LIMIT 1;
-                        
-                        IF check_empty IS NULL THEN
-                            SET @result_o = 'ISEMPTY';
-                        ELSE 
-                            SET @result_o = check_empty;
-                        END IF;
-
-                    END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_check_move_employee(
-                IN lp VARCHAR(12),
-                IN employee VARCHAR(20))
-                    BEGIN   
-                        DECLARE check_empty VARCHAR(20);
-                        SELECT Moves.employee INTO check_empty 
-                        FROM Moves
-                        WHERE Moves.lp = lp LIMIT 1;
-
-                        IF check_empty IS NULL THEN
-                            SET @result_m = 'ISEMPTY';
-                        ELSEIF check_empty = employee THEN
-                            SET @result_m = 'ISEMPTY';
-                        ELSE 
-                            SET @result_m = check_empty;
-                        END IF;
-
-                    END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_check_released(
-                IN order_number VARCHAR(12))
-                    BEGIN   
-                        DECLARE check_var ENUM('NR','NP','P');
-                        DECLARE _message_var VARCHAR(128);
-                        SELECT state INTO check_var 
-                        FROM Pick_list
-                        WHERE Pick_list.order_number = order_number LIMIT 1;
-                                
-                        IF (check_var <> 'NP') THEN
-                            SELECT CONCAT('ERROR,  STATE: ', check_var) INTO _message_var;
-                            SIGNAL SQLSTATE '40000' SET MESSAGE_TEXT = _message_var;
-                        END IF;
-                    END;"""
-    )
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_check_lp_exists(
-                IN check_lp VARCHAR(12))
-                    BEGIN   
-                        DECLARE check_empty VARCHAR(12);
-                        SELECT lp INTO check_empty 
-                        FROM Lps
-                        WHERE lp = check_lp;
-                                
-                        IF (check_empty IS NULL) THEN
-                            SIGNAL SQLSTATE '50000' SET MESSAGE_TEXT = 'LP DOES NOT EXIST';
-                        END IF;
-                    END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_check_lp_not_exists(
-                IN check_lp VARCHAR(12))
-                    BEGIN   
-                        DECLARE check_empty VARCHAR(12);
-                        SELECT lp INTO check_empty 
-                        FROM Lps
-                        WHERE lp = check_lp;
-                                
-                        IF (check_empty IS NOT NULL) THEN
-                            SIGNAL SQLSTATE '50000' SET MESSAGE_TEXT = 'LP DOES EXIST';
-                        END IF;
-                    END;"""
-    )
-
-    mycursor.execute(
-        """CREATE PROCEDURE IF NOT EXISTS pr_picking(
-                IN order_number VARCHAR(12),
-                IN pick_location VARCHAR(8),
-                IN num_boxes INT)
-                    BEGIN
-                        DECLARE lp_from_location VARCHAR(12);
-                        DECLARE order_num_state VARCHAR(2);
-                        SELECT state INTO order_num_state FROM Pick_list WHERE Pick_list.order_number = order_number LIMIT 1;
-
-                        SELECT lp INTO lp_from_location FROM lp_location_data WHERE position = pick_location;
-                        UPDATE Pick_list SET Pick_list.state = 'P' WHERE Pick_list.order_number = order_number AND Pick_list.loc = pick_location;
-                        UPDATE Lps SET Lps.num_allocated_boxes = Lps.num_allocated_boxes - num_boxes  WHERE Lps.lp = lp_from_location;
-
-                        CALL pr_delete_empty_lp();
-                    END;"""
-    )
-
-    mycursor.execute(
-        f"""CREATE PROCEDURE IF NOT EXISTS pr_release_orders(
-            IN client ENUM({clients[:-2]}, 'WA')
-        )
-                    BEGIN
-                        DECLARE checker INT;
-                        DECLARE _error_message VARCHAR(128);
-                        DECLARE orders_left INT;
-
-                        IF client = 'WA' THEN
-                            SELECT COUNT(id) INTO checker FROM Moves;
-                        ELSE
-                            SELECT COUNT(id) INTO checker FROM Moves WHERE Moves.company_code = client;
-                        END IF;
-
-                        SELECT id INTO orders_left FROM Pick_list 
-                            WHERE Pick_list.company_code = client AND 
-                            Pick_list.state = 'NR' LIMIT 1;
-                        
-                        IF orders_left IS NULL THEN 
-                            SELECT CONCAT('The client ', client, ' does not have orders left to release' ) INTO _error_message;
-                            SIGNAL SQLSTATE '41000'
-                            SET MESSAGE_TEXT = _error_message; 
-                        END IF;
-                        
-                        CASE
-                            WHEN (checker != 0) THEN
-                                SELECT CONCAT('STILL HAVE ', checker, ' MOVES TO DO FOR ', client) INTO _error_message;
-                                SIGNAL SQLSTATE '41000' SET MESSAGE_TEXT = _error_message;
-                            WHEN (checker = 0) THEN
-                                IF client = 'WA' THEN
-                                    UPDATE Pick_list SET state = 'NP';
-                                ELSE
-                                    UPDATE Pick_list SET state = 'NP'
-                                    WHERE Pick_list.company_code = client;
-                                END IF;
-                            END CASE;
-                    END;"""
-    )
-
-    mycursor.execute(
-        f"""CREATE PROCEDURE IF NOT EXISTS pr_check_enough_boxes(
-            IN new_sku INT,
-            IN new_order INT )
-          
-                    BEGIN
-                        DECLARE total_boxes_in_wh INT;
-                        DECLARE total_boxes_to_pick INT;
-
-                        SELECT SUM(num_boxes) INTO total_boxes_in_wh
-                            FROM lp_location_data WHERE lp_location_data.sku = new_sku;
-                        
-                        IF new_order = 0 THEN
-                            SELECT SUM(num_boxes) INTO total_boxes_to_pick
-                                FROM back_orders WHERE back_orders.sku = new_sku;
-                        ELSE
-                            SELECT SUM(num_boxes) INTO total_boxes_to_pick
-                                FROM back_orders WHERE back_orders.sku = new_sku 
-                                    AND back_orders.backorder_number = new_order;
-                        END IF;
-
-                        IF total_boxes_in_wh < total_boxes_to_pick THEN
-                            SET @can_be_picked = 'N';
-                        ELSE 
-                            SET @can_be_picked = 'Y';
-                        END IF;
-                    END;
-    """
-    )
-
-
-def mfwh_db_insert_providers_products(mydb, mycursor, providers, products):
-    sql = "INSERT INTO Providers (name, company_code) VALUES (%s, %s)"
-    mycursor.executemany(sql, providers)
-    mydb.commit()
-
-    sql = "INSERT INTO Products (sku, name, num_boxes_per_pallet, company_code, benefit, ADR) VALUES (%s, %s, %s, %s, %s, %s)"
-    mycursor.executemany(sql, products)
-    mydb.commit()
-
-
-def mfwh_digital_warehouse(AISLES, ROWS, LEVELS):
-    # Location (aisle, position, level, state )
-    warehouse = {}
-    AISLE_INFO = list(zip(zip(AISLES, ROWS), LEVELS))
-    for row_info in AISLE_INFO:
-        warehouse[row_info[0][0]] = []
-        for _ in range(1, row_info[0][1] + 1):
-            row = [f"{row_info[0][0][0]}/{_}/{level}" for level in row_info[1]]
-            warehouse[row_info[0][0]].append(row)
-    return warehouse
-
-
-def insert_digital_warehouse(warehouse, mydb, levels):
-    aisle_count = 0
-    mycursor = mydb.cursor()
-    sql = "INSERT INTO locations (position, level, max_weight, max_height, ADR) VALUES (%s, %s, %s, %s, %s)"
-    for aisle in warehouse:
-        for col in warehouse[aisle]:
-            for loc in col:
-                level = loc[-1]
-                mycursor.execute(
-                    sql,
-                    (
-                        loc,
-                        level,
-                        levels[aisle_count][level]["Weight"],
-                        levels[aisle_count][level]["Height"],
-                        aisle[1],
-                    ),
-                )
-        aisle_count += 1
-
-    mydb.commit()
-
-
-def fill_locations(mydb):
-    mycursor = mydb.cursor()
-    mycursor.execute("SELECT sku, num_boxes_per_pallet FROM Products")
-    result = mycursor.fetchall()
-    products = [i[0] for i in result]
-    num_boxes = [i[1] for i in result]
-    products.append(None)
-
-    mycursor.execute("SELECT COUNT(position) FROM Locations")
-    count = mycursor.fetchall()[0][0] + 2
-
-    total = [
-        i
-        for i in numpy.random.choice(
-            products,
-            p=[
-                0.1,
-                0.07,
-                0.07,
-                0.04,
-                0.05,
-                0.05,
-                0.05,
-                0.02,
-                0.06,
-                0.12,
-                0.12,
-                0.04,
-                0.02,
-                0.02,
-                0.05,
-                0.02,
-                0.10,
-            ],
-            size=count - 20,
-        )
-    ]
-
-    for product in products:
-        if product not in total:
-            for index, _ in enumerate(total):
-                if total[index] == None:
-                    total[index] = product
-                break
-
-    for _, sku in enumerate(total):
-        if sku is not None:
-            mycursor.execute(
-                "INSERT INTO Lps(sku, num_boxes, on_loc) VALUES(%s, %s, %s)",
-                (sku, num_boxes[products.index(sku)], "Y"),
-            )
-    mydb.commit()
-
-
-def get_orders(mydb, loop):
-    mycursor = mydb.cursor()
-    orders_k, orders_j, orders_r, orders_s = [
-        random.randint(30, 60),
-        random.randint(10, 30),
-        random.randint(80, 90),
-        random.randint(0, 2),
-    ]
-    clients_data = [
-        ("KD", orders_k),
-        ("JW", orders_j),
-        ("RC", orders_r),
-        ("SCP", orders_s),
-    ]
-
-    all_orders = {"KD": {}, "JW": {}, "RC": {}, "SCP": {}}
-    count = 1112
-
-    while loop:
-        for client in clients_data:
-            mycursor.execute(
-                "SELECT sku, num_boxes_per_pallet FROM Products WHERE company_code = %s",
-                (client[0],),
-            )
-            result = mycursor.fetchall()
-            products = [i[0] for i in result]
-            num_boxes = [i[1] for i in result]
-            for _ in range(client[1]):
-                match client[0]:
-                    case "KD":
-                        num_lines = random.randint(1, 4)
-                    case "JW":
-                        num_lines = random.randint(1, 2)
-                    case "RC":
-                        num_lines = random.randint(1, 4)
-                    case "SCP":
-                        num_lines = 1
-                all_orders[client[0]][count] = {}
-                for _ in range(num_lines):
-                    choice = random.randint(0, len(products) - 1)
-                    if products[choice] not in all_orders[client[0]][count]:
-                        all_orders[client[0]][count][products[choice]] = random.randint(
-                            max(1, int(num_boxes[choice] / 10)),
-                            max(1, int(num_boxes[choice] / 2)),
-                        )
-                    else:
-                        all_orders[client[0]][count][
-                            products[choice]
-                        ] += random.randint(
-                            max(1, int(num_boxes[choice] / 10)),
-                            max(1, int(num_boxes[choice] / 2)),
-                        )
-
-                count += 1
-        loop -= 1
-    return all_orders
-
-
-def get_orders_date(mydb, dates):
-    mycursor = mydb.cursor()
-    orders_k, orders_j, orders_r, orders_s = [
-        random.randint(10, 20),
-        random.randint(1, 3),
-        random.randint(8, 14),
-        random.randint(0, 2),
-    ]
-    clients_data = [
-        ("KD", orders_k),
-        ("JW", orders_j),
-        ("RC", orders_r),
-        ("SCP", orders_s),
-    ]
-
-    all_orders = {}
-    count = 1112
-
-    for date in dates:
-        all_orders[date] = {"KD": {}, "JW": {}, "RC": {}, "SCP": {}}
-        for client in clients_data:
-            mycursor.execute(
-                "SELECT sku, num_boxes_per_pallet FROM Products WHERE company_code = %s",
-                (client[0],),
-            )
-            result = mycursor.fetchall()
-            products = [i[0] for i in result]
-            num_boxes = [i[1] for i in result]
-            for _ in range(client[1]):
-                match client[0]:
-                    case "KD":
-                        num_lines = random.randint(1, 4)
-                    case "JW":
-                        num_lines = random.randint(1, 2)
-                    case "RC":
-                        num_lines = random.randint(1, 4)
-                    case "SCP":
-                        num_lines = 1
-
-                all_orders[date][client[0]][count] = {}
-                for _ in range(num_lines):
-                    choice = random.randint(0, len(products) - 1)
-                    if products[choice] not in all_orders[date][client[0]][count]:
-                        all_orders[date][client[0]][count][
-                            products[choice]
-                        ] = random.randint(
-                            max(1, int(num_boxes[choice] / 10)),
-                            max(1, int(num_boxes[choice] / 2)),
-                        )
-                    else:
-                        all_orders[date][client[0]][count][
-                            products[choice]
-                        ] += random.randint(
-                            max(1, int(num_boxes[choice] / 10)),
-                            max(1, int(num_boxes[choice] / 2)),
-                        )
-                count += 1
-    return all_orders
-
-
-def fill_orders(mydb, orders: dict) -> None:
-    mycursor = mydb.cursor()
-    for _, v in orders.items():
-        for order_num, products in v.items():
-            for i in products:
-                sku = i
-                num_boxes = products[i]
-                sql = "INSERT INTO Products_bufe (order_number, sku, num_boxes, added) VALUES(%s, %s, %s, %s)"
-                values = (order_num, sku, num_boxes, "N")
-                mycursor.execute(sql, values)
-                mydb.commit()
-
-
-def filling():
-    dates = pandas.date_range(start="20210101", end="20220101", freq="D")
-    return dates.date
-
-
-def insert_dates(mycursor, mydb, orders):
-    sql = "INSERT INTO Sales (date, sku, num_boxes) VALUES (%s,%s,%s)"
-    for date, company_code in orders.items():
-        for company_code, order_info in company_code.items():
-            for order_number, lines in order_info.items():
-                for sku, num_boxes in lines.items():
-                    mycursor.execute(sql, (date, sku, num_boxes))
-    mydb.commit()
-
-
 def trailer_in(trailer_number):
     data = []
     try:
@@ -3523,45 +2736,6 @@ def update_trailer_info(data, trailer_number, mycursor, mydb):
     mydb.commit()
 
 
-def warehouse_mainloop():
-    with open(r".config\config_database.json", "r") as f:
-        config_data = json.load(f)
-
-    conexion = config_data["CONEXION"]
-    providers = config_data["CLIENTS"]
-    products = config_data["PRODUCTS"]
-    warehouse_name = config_data["INFO"]["name"]
-    level_range = list(
-        max(
-            ([x["Levels"].keys() for x in config_data["WAREHOUSE_DIMENSIONS"].values()])
-        )
-    )
-
-    mydb, mycursor = create_connection(
-        host=conexion["host"],
-        user=conexion["user"],
-        password=conexion["password"],
-        port=conexion["port"],
-        name=warehouse_name,
-    )
-
-    mfwh_db(mydb, mycursor, providers, products, level_range)
-    mfwh_db_insert_providers_products(mydb, mycursor, providers, products)
-    aisles = [x for x in config_data["WAREHOUSE_DIMENSIONS"].keys()]
-    adr = [x["ADR"] for x in config_data["WAREHOUSE_DIMENSIONS"].values()]
-    aisles = list(zip(aisles, adr))
-    rows = [x["Rows"] for x in config_data["WAREHOUSE_DIMENSIONS"].values()]
-    levels = [x["Levels"] for x in config_data["WAREHOUSE_DIMENSIONS"].values()]
-
-    digital_warehouse = mfwh_digital_warehouse(aisles, rows, levels)
-    insert_digital_warehouse(digital_warehouse, mydb, levels)
-
-    fill_locations(mydb)
-    orders = get_orders(mydb, 1)
-
-    fill_orders(mydb, orders)
-    #allocate_boxes()
-
 
 def allocate_boxes():
     with open(r".config\config_database.json", "r") as f:
@@ -3618,12 +2792,22 @@ def allocate_boxes():
             grouped.append(list(items))
         else:
             singles.extend(items)
-  
+    last_grouped = []
     for order in grouped:
+        next_order = [x for x in order if x[2]>0]
+        last_grouped.append(next_order)
+
+
+
+    for order in last_grouped:
+        print(order)
         data_locations = []
         for line in order:
+            if line[2] == 0:
+                continue
+
             mycursor.execute(
-                f"SELECT COALESCE((SELECT position FROM lp_location_data WHERE sku = {line[1]} AND lp_location_data.num_boxes > {line[2]} AND level = 'A'  LIMIT 1), 0)"
+                f"SELECT COALESCE((SELECT position FROM lp_location_data WHERE sku = {line[1]} AND lp_location_data.num_boxes >= {line[2]} AND level = 'A' ORDER BY num_boxes LIMIT 1), 0)"
             )
             data = mycursor.fetchone()
 
@@ -3643,24 +2827,27 @@ def allocate_boxes():
                 mycursor.execute(f"SELECT COALESCE((SELECT SUM(num_boxes) FROM lp_location_data WHERE sku = {line[1]}  AND level = 'A'), 0)")
                 total_boxes_A_level = mycursor.fetchall()
                 if len(total_boxes_A_level) > 0 and total_boxes_A_level[0][0] > line[2]:
-                    while line[2] > 0:
-                        mycursor.execute(
-                            f"SELECT position, lp, num_boxes FROM lp_location_data WHERE sku = {line[1]} AND level = 'A'  AND num_boxes != 0 ORDER BY num_boxes LIMIT 1"
+                    mycursor.execute(
+                            f"SELECT position, lp, num_boxes FROM lp_location_data WHERE sku = {line[1]} AND level = 'A'  AND num_boxes > 0 ORDER BY num_boxes"
                         )
-                        total_info = mycursor.fetchall()
-                        print(total_info, line[2])
+                    total_info = mycursor.fetchall()
+                    while line[2] > 0:
+                        
+                        # AHORA VOY A PILLAR TODAS LAS LOCS, EL FALLO ES QUE NO SE ACTUALIZA, por lo tanto siempre recibe la misma localizacion
                         position, lp, num_boxes = total_info[0]
-                        if line[2] >= num_boxes:
+                        print("TOTAL INFO: ", position, lp, line[2],"-", num_boxes, "=", line[2] - num_boxes)
+                        if line[2] > num_boxes:
                             order.append([line[0], line[1], num_boxes])
                             line[2] -= num_boxes
                         else:
                             order.append([line[0], line[1], line[2]])
                             line[2] = 0
                             order = [order for order in order if order[2]>0]
+                        total_info.pop(0)
                     continue
                 else:
                     mycursor.execute(
-                        f"SELECT COALESCE((SELECT lp FROM lp_location_data WHERE sku = {line[1]} AND level != 'A' ORDER BY num_boxes DESC LIMIT 1), 0)"
+                        f"SELECT COALESCE((SELECT lp FROM lp_location_data WHERE sku = {line[1]} AND level != 'A' AND num_boxes >= {line[2]} ORDER BY num_boxes DESC LIMIT 1), 0)"
                     )
                     lp_from_bulk = mycursor.fetchall()
                     print("lp from the bulk", lp_from_bulk)
@@ -3677,6 +2864,8 @@ def allocate_boxes():
                             )
                             print(lp_from_bulk, " Postmove")
                             mydb.commit()
+                            data_locations.append([0,0,0])
+
 
                         #This error is if there is a move already done for that. 
                         except mysql.connector.Error as err:
@@ -3694,8 +2883,11 @@ def allocate_boxes():
             if line == order[-1]:
                 sql = "INSERT INTO pick_list(order_number, sku, num_boxes, state, loc, lp) VALUES (%s,%s,%s,%s,%s,%s)"
                 info_line = list(zip(order, data_locations))
+
                 for data in info_line:
-                    print(data)
+                    print("DATA BEFORE INSERT: ", data)
+                    if data[1] == [0,0,0]:
+                        continue
                     mycursor.execute(
                         sql, (data[0][0], data[0][1], data[0][2], "NR", data[1][0], data[1][1])
                     )
@@ -3709,8 +2901,8 @@ def allocate_boxes():
                         f"UPDATE Products_bufe SET added = 'Y 'WHERE order_number = '{data[0][0]}'"
                     )
                     mydb.commit()
+                continue
 
-    print("before singles")
     for order in singles:
         mycursor.execute(f"SELECT SUM(num_boxes) FROM lp_location_data WHERE sku = {order[1]}  AND level = 'A'")
         try:
@@ -3767,15 +2959,8 @@ def allocate_boxes():
         
     return "Orders Released."
 
-        
 
-def main():
-    with open(r".config\config_database.json", "r") as f:
-        config_data = json.load(f)
-
-    warehouse_mainloop()
-    MyGUI("lmao").mainloop()
 
 
 if __name__ == "__main__":
-    main()
+    GUILogin()
